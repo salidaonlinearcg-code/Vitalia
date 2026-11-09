@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consulta de puntos T1 y T2</title>
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="./resources/fontawesome-all.min.css">
+    <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
+    <style>
+        *{box-sizing:border-box}body{margin:0;background:#f3f6f9;color:#1f2937;font:14px Arial,sans-serif}
+        header,.panel-title{background:#0f3d56;color:white}header{padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+        h1{font-size:22px;margin:0 0 4px}header span{opacity:.85;font-size:13px}.container{max-width:1600px;margin:auto;padding:20px}
+        .dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:18px}
+        .card,.panel{background:white;border-radius:10px;box-shadow:0 2px 8px #00000014;overflow:hidden}
+        .card{padding:16px}.label{color:#64748b;font-size:13px;margin-bottom:7px}.value{color:#0f3d56;font-size:24px;font-weight:bold}
+        .layout{display:grid;grid-template-columns:370px 1fr;gap:18px}.panel-title{padding:14px 17px;font-weight:bold}
+        .filters{padding:15px}.filters label{display:block;color:#64748b;font-size:12px;margin:12px 0 5px}
+        .filters input,.filters select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;background:white;font-size:14px}
+        .buttons{display:flex;gap:8px;margin-top:14px}.buttons button,.result{border:0;border-radius:6px;padding:10px 12px;cursor:pointer}
+        .primary{background:#0f3d56;color:white;font-weight:bold}.secondary{background:#e2e8f0;color:#334155}
+        #resultSummary{padding:0 15px 10px;color:#64748b;font-size:13px}
+        #results{max-height:calc(70vh - 295px);min-height:180px;overflow:auto;border-top:1px solid #e5e7eb}
+        .result{display:block;width:100%;text-align:left;background:white;border-bottom:1px solid #e5e7eb;border-radius:0;padding:12px 15px}
+        .result:hover{background:#f1f5f9}.result strong{display:block;color:#0f3d56;margin-bottom:5px}
+        .result span{font-size:12px;color:#64748b;line-height:1.6}.empty{padding:22px 15px;color:#64748b;text-align:center}
+        .map-area{height:min(75vh,800px);min-height:500px;background:#f8fafc}#map{width:100%;height:100%;margin:0}
+        .ol-control>*{background:#f8f8f8!important;color:#444!important;border-radius:4px}
+        .ol-attribution a,.gcd-gl-input::placeholder,.search-layer-input-search::placeholder{color:#444!important}
+        .ol-control>*:focus,.ol-control>*:hover{background:rgba(248,248,248,.8)!important}
+        .ol-control{background:rgba(255,255,255,.55)!important;padding:2px!important}
+        @media(max-width:900px){.layout{grid-template-columns:1fr}#results{max-height:300px}.map-area{height:65vh;min-height:380px}}
+        @media(max-width:550px){header{align-items:flex-start;gap:8px;flex-direction:column}.container{padding:12px}.dashboard{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <header>
+        <div><h1>Consulta de puntos T1 y T2</h1><span>Busca puntos por fecha o cualquier atributo y selecciónalos para ubicarlos en el mapa</span></div>
+        <span id="fecha"></span>
+    </header>
+    <main class="container">
+        <section class="dashboard" aria-label="Resumen de puntos">
+            <div class="card"><div class="label">Puntos disponibles</div><div class="value" id="totalPuntos">0</div></div>
+            <div class="card"><div class="label">Resultados</div><div class="value" id="totalResultados">0</div></div>
+            <div class="card"><div class="label">Punto seleccionado</div><div class="value" id="puntoSeleccionado">—</div></div>
+        </section>
+        <div class="layout">
+            <section class="panel">
+                <div class="panel-title">Consulta por atributos</div>
+                <div class="filters">
+                    <label for="torre">Puntos</label>
+                    <select id="torre">
+                        <option value="">T1 y T2</option>
+                        <option value="T1">Coordenadas T1</option>
+                        <option value="T2">Coordenadas T2</option>
+                    </select>
+                    <label for="atributo">Atributo</label>
+                    <select id="atributo"><option value="">Cualquier atributo</option></select>
+                    <label for="consulta">Valor a buscar</label>
+                    <input id="consulta" type="search" placeholder="Ej.: 3-nov-26 o T1-111">
+                    <div class="buttons">
+                        <button class="primary" id="buscar">Buscar</button>
+                        <button class="secondary" id="limpiar">Limpiar</button>
+                    </div>
+                </div>
+                <div id="resultSummary" aria-live="polite"></div>
+                <div id="results" aria-live="polite"></div>
+            </section>
+            <section class="panel">
+                <div class="panel-title">Localización de puntos</div>
+                <div class="map-area">
+                    <div id="map">
+                        <div id="popup" class="ol-popup">
+                            <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                            <div id="popup-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="./resources/qgis2web_expressions.js"></script>
+    <script src="./resources/proj4.js"></script>
+    <script>proj4.defs('','+proj=tmerc +lat_0=4.68048611111111 +lon_0=-74.1465916666667 +k=1.00039980326544 +x_0=92334.879 +y_0=109320.965 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');</script>
+    <script src="./resources/functions.js"></script>
+    <script src="./resources/ol.js"></script>
+    <script src="./resources/ol-layerswitcher.js"></script>
+    <script src="./resources/photon-geocoder-autocomplete.min.js"></script>
+    <script src="./resources/olms.js"></script>
+    <script src="./layers/Lote_Proyecto_1.js"></script>
+    <script src="./layers/paramento_2.js"></script>
+    <script src="./layers/Limite_T1_3.js"></script>
+    <script src="./layers/Limite_T2_4.js"></script>
+    <script src="./layers/Coordenadas_T1_31_08_06_5.js"></script>
+    <script src="./layers/Coordenadas_T2_31_08_06_6.js"></script>
+    <script src="./styles/Lote_Proyecto_1_style.js"></script>
+    <script src="./styles/paramento_2_style.js"></script>
+    <script src="./styles/Limite_T1_3_style.js"></script>
+    <script src="./styles/Limite_T2_4_style.js"></script>
+    <script src="./styles/Coordenadas_T1_31_08_06_5_style.js"></script>
+    <script src="./styles/Coordenadas_T2_31_08_06_6_style.js"></script>
+    <script src="./layers/layers.js"></script>
+    <script src="./resources/Autolinker.min.js"></script>
+    <script src="./resources/qgis2web.js"></script>
+    <script>
+        const capasPuntos = [
+            {torre:"T1", capa:lyr_Coordenadas_T1_31_08_06_5},
+            {torre:"T2", capa:lyr_Coordenadas_T2_31_08_06_6}
+        ];
+        const puntos = capasPuntos.flatMap(({torre, capa}) =>
+            capa.getSource().getFeatures().map(feature => ({torre, capa, feature}))
+        );
+        const atributo = document.getElementById("atributo");
+        const resultado = document.getElementById("results");
+        const mapaSeleccion = new ol.source.Vector();
+        const capaSeleccion = new ol.layer.Vector({
+            source: mapaSeleccion,
+            style: new ol.style.Style({
+                image: new ol.style.Circle({
+                    radius: 9,
+                    fill: new ol.style.Fill({color:"#2563eb"}),
+                    stroke: new ol.style.Stroke({color:"#fff",width:3})
+                })
+            })
+        });
+        map.addLayer(capaSeleccion);
+
+        function normalizar(valor) {
+            return String(valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+        }
+
+        function buscarPuntos() {
+            const torre = document.getElementById("torre").value;
+            const campo = atributo.value;
+            const texto = normalizar(document.getElementById("consulta").value);
+            const encontrados = puntos.filter(({torre:piso, feature}) => {
+                if (torre && torre !== piso) return false;
+                const propiedades = feature.getProperties();
+                const valores = campo ? [propiedades[campo]] : Object.values(propiedades);
+                return !texto || valores.some(valor => normalizar(valor).includes(texto));
+            });
+            document.getElementById("totalResultados").textContent = encontrados.length;
+            document.getElementById("resultSummary").textContent =
+                `${encontrados.length} punto${encontrados.length === 1 ? "" : "s"} encontrado${encontrados.length === 1 ? "" : "s"}`;
+            resultado.replaceChildren();
+            if (!encontrados.length) {
+                resultado.innerHTML = '<div class="empty">No se encontraron puntos con esos criterios.</div>';
+                return;
+            }
+            encontrados.forEach(({torre:piso, feature}) => {
+                const datos = feature.getProperties();
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "result";
+                const titulo = document.createElement("strong");
+                titulo.textContent = `${datos.id || "Punto"} · ${piso}`;
+                const detalle = document.createElement("span");
+                detalle.textContent = `Fundido: ${datos.FechaFundido || "—"} | Replanteo: ${datos.FechaReplanteo || "—"} | Replanteado: ${datos.replanteado || "—"}`;
+                item.append(titulo, detalle);
+                item.addEventListener("click", () => seleccionarPunto(feature, datos.id));
+                resultado.appendChild(item);
+            });
+        }
+
+        function seleccionarPunto(feature, id) {
+            const marcado = feature.clone();
+            mapaSeleccion.clear();
+            mapaSeleccion.addFeature(marcado);
+            document.getElementById("puntoSeleccionado").textContent = id || "Punto";
+            map.getView().fit(feature.getGeometry().getExtent(), {
+                size: map.getSize(), maxZoom: 20, duration: 500, padding: [80,80,80,80]
+            });
+        }
+
+        const campos = [...new Set(puntos.flatMap(({feature}) =>
+            Object.keys(feature.getProperties()).filter(key => key !== "geometry")
+        ))].sort((a,b) => a.localeCompare(b,"es"));
+        campos.forEach(campo => atributo.add(new Option(campo, campo)));
+        atributo.value = "";
+        document.getElementById("torre").value = "";
+        document.getElementById("fecha").textContent = new Date().toLocaleDateString("es-CO");
+        document.getElementById("totalPuntos").textContent = puntos.length;
+        document.getElementById("buscar").addEventListener("click", buscarPuntos);
+        document.getElementById("limpiar").addEventListener("click", () => {
+            document.getElementById("torre").value = "";
+            atributo.value = "";
+            document.getElementById("consulta").value = "";
+            document.getElementById("puntoSeleccionado").textContent = "—";
+            mapaSeleccion.clear();
+            buscarPuntos();
+        });
+        document.getElementById("consulta").addEventListener("keydown", event => {
+            if (event.key === "Enter") buscarPuntos();
+        });
+        document.getElementById("torre").addEventListener("change", buscarPuntos);
+        buscarPuntos();
+    </script>
+</body>
+</html>
