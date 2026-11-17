@@ -1,29 +1,30 @@
-<!doctype html>
-<html lang="es">
+<!doctype html> // Uso de HTML5
+<html lang="es">//idioma español
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Consulta de puntos T1 y T2</title>
-    <link rel="stylesheet" href="./resources/ol.css">
-    <link rel="stylesheet" href="./resources/fontawesome-all.min.css">
-    <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
-    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
-    <link rel="stylesheet" href="./resources/qgis2web.css">
-    <style>
+    <meta charset="utf-8">//Caracteres especiales
+    <meta name="viewport" content="width=device-width, initial-scale=1">//vista de celular
+    <title>Consulta de puntos T1 y T2</title> // titulo de la pestaña de navegacion
+    <link rel="stylesheet" href="./resources/ol.css"> // estilos de open layers
+    <link rel="stylesheet" href="./resources/fontawesome-all.min.css"> // estilos de iconos
+    <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css"> // estilos de autocompletado    
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">// estilos de selector de capas
+    <link rel="stylesheet" href="./resources/qgis2web.css">// estilos generados por qgis2web
+    //control de apariencias de la pagina
+    <style> 
         *{box-sizing:border-box}body{margin:0;background:#f3f6f9;color:#1f2937;font:14px Arial,sans-serif}
         header,.panel-title{background:#0f3d56;color:white}header{padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
         h1{font-size:22px;margin:0 0 4px}header span{opacity:.85;font-size:13px}.container{max-width:1600px;margin:auto;padding:20px}
-        .dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:18px}
-        .card,.panel{background:white;border-radius:10px;box-shadow:0 2px 8px #00000014;overflow:hidden}
-        .card{padding:16px}.label{color:#64748b;font-size:13px;margin-bottom:7px}.value{color:#0f3d56;font-size:24px;font-weight:bold}
-        .layout{display:grid;grid-template-columns:370px 1fr;gap:18px}.panel-title{padding:14px 17px;font-weight:bold}
-        .filters{padding:15px}.filters label{display:block;color:#64748b;font-size:12px;margin:12px 0 5px}
-        .filters input,.filters select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;background:white;font-size:14px}
+        .dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:18px}/* Tarjetas de indicadores y paneles */
+        .card,.panel{background:white;border-radius:10px;box-shadow:0 2px 8px #00000014;overflow:hidden}/* Tarjetas de indicadores y paneles */
+        .card{padding:16px}.label{color:#64748b;font-size:13px;margin-bottom:7px}.value{color:#0f3d56;font-size:24px;font-weight:bold}/* Tarjetas de indicadores y paneles */
+        .layout{display:grid;grid-template-columns:370px 1fr;gap:18px}.panel-title{padding:14px 17px;font-weight:bold}/*division filtros y mapas*/
+        .filters{padding:15px}.filters label{display:block;color:#64748b;font-size:12px;margin:12px 0 5px}/*organiza filtros y mapas*/
+        .filters input,.filters select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;background:white;font-size:14px}/*organiza filtros y mapas*/
         .buttons{display:flex;gap:8px;margin-top:14px}.buttons button,.result{border:0;border-radius:6px;padding:10px 12px;cursor:pointer}
         .primary{background:#0f3d56;color:white;font-weight:bold}.secondary{background:#e2e8f0;color:#334155}
         #resultSummary{padding:0 15px 10px;color:#64748b;font-size:13px}
         #results{max-height:calc(70vh - 295px);min-height:180px;overflow:auto;border-top:1px solid #e5e7eb}
-        .result{display:block;width:100%;text-align:left;background:white;border-bottom:1px solid #e5e7eb;border-radius:0;padding:12px 15px}
+        .result{display:block;width:100%;text-align:left;background:white;border-bottom:1px solid #e5e7eb;border-radius:0;padding:12px 15px}/*putno encontrado*/
         .result:hover{background:#f1f5f9}.result strong{display:block;color:#0f3d56;margin-bottom:5px}
         .result span{font-size:12px;color:#64748b;line-height:1.6}.empty{padding:22px 15px;color:#64748b;text-align:center}
         .map-area{height:min(75vh,800px);min-height:500px;background:#f8fafc}#map{width:100%;height:100%;margin:0}
@@ -33,6 +34,48 @@
         .ol-control{background:rgba(255,255,255,.55)!important;padding:2px!important}
         @media(max-width:900px){.layout{grid-template-columns:1fr}#results{max-height:300px}.map-area{height:65vh;min-height:380px}}
         @media(max-width:550px){header{align-items:flex-start;gap:8px;flex-direction:column}.container{padding:12px}.dashboard{grid-template-columns:1fr}}
+        
+        /* Indicador de avance de fundido */
+
+        .barra-avance {
+            width: 100%;
+            height: 13px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        #barraAvance {
+            width: 0%;
+            height: 100%;
+            background: #16a34a;
+            border-radius: 20px;
+            transition: width 0.6s ease;
+        }
+
+        .detalle-avance {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 9px;
+        }
+
+        .avance-card .value {
+            color: #16a34a;
+        }
+
+      /*  @media(max-width: 900px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width: 550px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }*/
+
     </style>
 </head>
 <body>
@@ -41,11 +84,57 @@
         <span id="fecha"></span>
     </header>
     <main class="container">
+        
         <section class="dashboard" aria-label="Resumen de puntos">
-            <div class="card"><div class="label">Puntos disponibles</div><div class="value" id="totalPuntos">0</div></div>
-            <div class="card"><div class="label">Resultados</div><div class="value" id="totalResultados">0</div></div>
-            <div class="card"><div class="label">Punto seleccionado</div><div class="value" id="puntoSeleccionado">—</div></div>
+
+             <div class="card">
+                  <div class="label">Puntos disponibles</div>
+                 <div class="value" id="totalPuntos">0</div>//identificador de total de puntos
+             </div>
+
+            <div class="card">
+                <div class="label">Resultados</div>
+                <div class="value" id="totalResultados">0</div>//identificador de total de resultados
+            </div>
+
+            <div class="card">
+                <div class="label">Punto seleccionado</div>
+                <div class="value" id="puntoSeleccionado">—</div>     //identificador de punto seleccionado
+            </div>
+
+            <div class="card avance-card">
+                <div class="label">Avance de fundido</div>
+                <div class="value" id="porcentajeAvance">0%</div>//identificador de porcentaje de avance
+
+                <div class="barra-avance">
+                    <div id="barraAvance"></div>//identificador de barra de avance
+                </div>
+
+                <div id="detalleAvance" class="detalle-avance">
+                    0 de 0 pilotes fundidos
+                </div>
+
+                <div id="avanceTorres" class="detalle-avance">//
+                    T1: 0% | T2: 0%
+                </div>
+            </div>
+            
+            <div class="buttons" style="flex-wrap:wrap">
+                <button class="secondary" id="todos">Todos</button>
+                <button class="secondary" id="fundidos">🟢 Fundidos</button>
+                <button class="secondary" id="ejecucion">🟡 En ejecución</button>
+                <button class="secondary" id="pendientes">🔴 Pendientes</button>
+            </div>
+            <div id="estadoSheets" style="font-size:12px;margin-top:10px">
+                Conectando con Google Sheets...
+            </div>
+            <div style="font-size:12px;margin-top:6px;color:#64748b">
+                Buffer de 5 m · No disponibles durante la ejecución y hasta 48 h después del fundido
+            </div>
+
+
         </section>
+            /*panel de consulta de atributos y localizacion de puntos*/
         <div class="layout">
             <section class="panel">
                 <div class="panel-title">Consulta por atributos</div>
@@ -81,121 +170,470 @@
             </section>
         </div>
     </main>
+    /*carga de capas y estilos de qgis2web y openlayers*/
     <script src="./resources/qgis2web_expressions.js"></script>
-    <script src="./resources/proj4.js"></script>
-    <script>proj4.defs('','+proj=tmerc +lat_0=4.68048611111111 +lon_0=-74.1465916666667 +k=1.00039980326544 +x_0=92334.879 +y_0=109320.965 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');</script>
     <script src="./resources/functions.js"></script>
     <script src="./resources/ol.js"></script>
     <script src="./resources/ol-layerswitcher.js"></script>
     <script src="./resources/photon-geocoder-autocomplete.min.js"></script>
     <script src="./resources/olms.js"></script>
-    <script src="./layers/Lote_Proyecto_1.js"></script>
-    <script src="./layers/paramento_2.js"></script>
-    <script src="./layers/Limite_T1_3.js"></script>
-    <script src="./layers/Limite_T2_4.js"></script>
-    <script src="./layers/Coordenadas_T1_31_08_06_5.js"></script>
-    <script src="./layers/Coordenadas_T2_31_08_06_6.js"></script>
-    <script src="./styles/Lote_Proyecto_1_style.js"></script>
-    <script src="./styles/paramento_2_style.js"></script>
-    <script src="./styles/Limite_T1_3_style.js"></script>
-    <script src="./styles/Limite_T2_4_style.js"></script>
-    <script src="./styles/Coordenadas_T1_31_08_06_5_style.js"></script>
-    <script src="./styles/Coordenadas_T2_31_08_06_6_style.js"></script>
+    <script src="./layers/Lote_Proyecto_2.js"></script>
+    <script src="./layers/Plataforma_3.js"></script>
+    <script src="./layers/Limite_T1_4.js"></script>
+    <script src="./layers/Limite_T2_5.js"></script>
+    <script src="./layers/PilotesT1_6.js"></script>
+    <script src="./layers/PilotesT2_7.js"></script>
+    <script src="./styles/Lote_Proyecto_2_style.js"></script>
+    <script src="./styles/Plataforma_3_style.js"></script>
+    <script src="./styles/Limite_T1_4_style.js"></script>
+    <script src="./styles/Limite_T2_5_style.js"></script>
+    <script src="./styles/PilotesT1_6_style.js"></script>
+    <script src="./styles/PilotesT2_7_style.js"></script>
     <script src="./layers/layers.js"></script>
     <script src="./resources/Autolinker.min.js"></script>
     <script src="./resources/qgis2web.js"></script>
     <script>
+
+        /*identificacion capa puntos*/ 
         const capasPuntos = [
-            {torre:"T1", capa:lyr_Coordenadas_T1_31_08_06_5},
-            {torre:"T2", capa:lyr_Coordenadas_T2_31_08_06_6}
+            {torre:"T1", capa:lyr_PilotesT1_6},
+            {torre:"T2", capa:lyr_PilotesT2_7}
         ];
+        /*creacion de arreglo de puntos con torre, capa y geometria*/
         const puntos = capasPuntos.flatMap(({torre, capa}) =>
             capa.getSource().getFeatures().map(feature => ({torre, capa, feature}))
         );
-        const atributo = document.getElementById("atributo");
-        const resultado = document.getElementById("results");
-        const mapaSeleccion = new ol.source.Vector();
-        const capaSeleccion = new ol.layer.Vector({
-            source: mapaSeleccion,
+        
+        // VITALIA - GOOGLE SHEETS DIRECTO
+        const urlSheets = "https://docs.google.com/spreadsheets/d/1QcTXxKmxnbQgfVEV8gqs4-CYZAzX9WAzw14mLPriSwE/gviz/tq?tqx=out:json&sheet=P_VTL&headers=0";
+        // recupera los datos de Google Sheets y los almacena en un objeto para su posterior uso en la aplicación.
+        let datosSheets = {};
+        let filtro = "TODOS";
+        const radioBufferMetros = 5;
+        const duracionNoPosibleMs = 48 * 60 * 60 * 1000;
+        const fuenteBuffers = new ol.source.Vector();
+        const capaBuffers = new ol.layer.Vector({
+            source: fuenteBuffers,
             style: new ol.style.Style({
-                image: new ol.style.Circle({
-                    radius: 9,
-                    fill: new ol.style.Fill({color:"#2563eb"}),
-                    stroke: new ol.style.Stroke({color:"#fff",width:3})
+                fill: new ol.style.Fill({color: "rgba(249, 115, 22, 0.15)"}),
+                stroke: new ol.style.Stroke({color: "#f97316", width: 2, lineDash: [6, 4]})
+            })
+        });
+        const puntosNoPosibles = new Map();
+        map.addLayer(capaBuffers);
+        
+        //funcion para determinar el estado de cada punto. con los datos de google sheets y los datos de qgis2web
+        function estado(feature) {
+            const id = String(feature.get("id") || "").trim().toUpperCase();//obtiene el id del punto y lo normaliza
+            const d = datosSheets[id];//busca el id en los datos de google sheets
+
+            const k = d ? d.k : feature.get("FechaFundido");//si existe el id en los datos de google sheets, obtiene la fecha de fundido, si no, obtiene la fecha de fundido de los datos de qgis2web
+            const l = d ? d.l : feature.get("FechaReplanteo");//si existe el id en los datos de google sheets, obtiene la fecha de replanteo, si no, obtiene la fecha de replanteo de los datos de qgis2web
+
+            if (k) return "FUNDIDO";//si existe la fecha de fundido, el estado es FUNDIDO
+            if (l) return "EJECUCION";//si existe la fecha de replanteo, el estado es EJECUCION
+            return "PENDIENTE";//si no existe ninguna fecha, el estado es PENDIENTE
+        }
+
+        function obtenerFechaFundido(feature) {
+            const id = String(feature.get("id") || "").trim().toUpperCase();
+            const datos = datosSheets[id];
+            return datos ? datos.k : feature.get("FechaFundido");
+        }
+
+        function convertirFecha(valor) {
+            if (typeof valor === "number" && Number.isFinite(valor)) {
+                const serial = new Date(Date.UTC(1899, 11, 30) + valor * 86400000);
+                return new Date(
+                    serial.getUTCFullYear(),
+                    serial.getUTCMonth(),
+                    serial.getUTCDate(),
+                    serial.getUTCHours(),
+                    serial.getUTCMinutes(),
+                    serial.getUTCSeconds(),
+                    serial.getUTCMilliseconds()
+                );
+            }
+
+            const texto = String(valor || "").trim();
+            if (!texto) return null;
+
+            const fechaEspanol = texto.match(
+                /^(\d{1,2})[-/\s](enero|ene|febrero|feb|marzo|mar|abril|abr|april|apr|mayo|may|junio|jun|julio|jul|agosto|ago|august|aug|septiembre|setiembre|sept|sep|octubre|oct|october|noviembre|nov|november|diciembre|dic|december|dec)[-/\s](\d{2,4})(?:[,\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/i
+            );
+            if (fechaEspanol) {
+                const meses = {
+                    ene:0, enero:0, feb:1, febrero:1, mar:2, marzo:2, abr:3, abril:3,
+                    apr:3, april:3, may:4, mayo:4, jun:5, junio:5, jul:6, julio:6,
+                    ago:7, agosto:7, aug:7, august:7, sep:8, sept:8, septiembre:8,
+                    setiembre:8, oct:9, octubre:9, nov:10, noviembre:10, november:10,
+                    dic:11, diciembre:11, dec:11, december:11
+                };
+                const anio = Number(fechaEspanol[3]);
+                const fecha = new Date(
+                    anio < 100 ? 2000 + anio : anio,
+                    meses[fechaEspanol[2].toLowerCase()],
+                    Number(fechaEspanol[1]),
+                    Number(fechaEspanol[4] || 0),
+                    Number(fechaEspanol[5] || 0),
+                    Number(fechaEspanol[6] || 0)
+                );
+                return Number.isNaN(fecha.getTime()) ? null : fecha;
+            }
+
+            const fechaNumerica = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+            if (fechaNumerica) {
+                const anio = Number(fechaNumerica[3]);
+                const fecha = new Date(
+                    anio < 100 ? 2000 + anio : anio,
+                    Number(fechaNumerica[2]) - 1,
+                    Number(fechaNumerica[1])
+                );
+                return Number.isNaN(fecha.getTime()) ? null : fecha;
+            }
+
+            const fecha = new Date(texto);
+            return Number.isNaN(fecha.getTime()) ? null : fecha;
+        }
+
+        function distanciaMetros(coordenadaA, coordenadaB) {
+            const [lonA, latA] = ol.proj.toLonLat(coordenadaA);
+            const [lonB, latB] = ol.proj.toLonLat(coordenadaB);
+            const radianes = grados => grados * Math.PI / 180;
+            const diferenciaLatitud = radianes(latB - latA);
+            const diferenciaLongitud = radianes(lonB - lonA);
+            const a = Math.sin(diferenciaLatitud / 2) ** 2 +
+                Math.cos(radianes(latA)) * Math.cos(radianes(latB)) *
+                Math.sin(diferenciaLongitud / 2) ** 2;
+            return 6371008.8 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function actualizarBuffersYDisponibilidad() {
+            const ahora = Date.now();
+            const origenes = puntos.flatMap(({feature}) => {
+                const e = estado(feature);
+                if (e === "EJECUCION") return [{feature, vence: null}];
+                if (e !== "FUNDIDO") return [];
+
+                const fechaFundido = convertirFecha(obtenerFechaFundido(feature));
+                if (!fechaFundido) return [];
+                const vence = fechaFundido.getTime() + duracionNoPosibleMs;
+                if (ahora < fechaFundido.getTime() || ahora >= vence) return [];
+                return [{feature, vence}];
+            });
+
+            fuenteBuffers.clear();
+            puntosNoPosibles.clear();
+
+            origenes.forEach(({feature, vence}) => {
+                const coordenada = feature.getGeometry().getCoordinates();
+                const latitud = ol.proj.toLonLat(coordenada)[1] * Math.PI / 180;
+                fuenteBuffers.addFeature(new ol.Feature({
+                    geometry: new ol.geom.Circle(coordenada, radioBufferMetros / Math.cos(latitud))
+                }));
+
+                puntos.forEach(({feature: objetivo}) => {
+                    if (objetivo === feature || estado(objetivo) === "FUNDIDO") return;
+                    const distancia = distanciaMetros(coordenada, objetivo.getGeometry().getCoordinates());
+                    if (distancia <= radioBufferMetros) {
+                        const bloqueoExistente = puntosNoPosibles.get(objetivo);
+                        puntosNoPosibles.set(objetivo, {
+                            vence: bloqueoExistente
+                                ? Math.max(bloqueoExistente.vence || 0, vence || 0)
+                                : vence,
+                            enEjecucion: Boolean(bloqueoExistente && bloqueoExistente.enEjecucion) || vence === null
+                        });
+                    }
+                });
+            });
+        }
+
+        //funcion para pintar los puntos en el mapa con colores segun su estado
+        function pintarPilotes() {
+            actualizarBuffersYDisponibilidad();
+            document.getElementById("totalPuntos").textContent = puntos.length - puntosNoPosibles.size;
+            puntos.forEach(({feature}) => {//recorre todos los puntos y obtiene su estado
+                const e = estado(feature);//obtiene el estado del punto
+                const color = puntosNoPosibles.has(feature)
+                    ? "#7c3aed"
+                    : {//asigna un color segun el estado del punto
+                    FUNDIDO: "#16a34a",//color verde para puntos fundidos
+                    EJECUCION: "#eab308",//color amarillo para puntos en ejecucion
+                    PENDIENTE: "#dc2626"//color rojo para puntos pendientes
+                }[e];//asigna el color correspondiente al estado del punto
+
+                const visible = filtro === "TODOS" || filtro === e;//si el filtro es TODOS o el estado del punto coincide con el filtro, el punto es visible
+
+                feature.setStyle(new ol.style.Style({//asigna el estilo del punto segun su estado y visibilidad
+                    image: new ol.style.Circle({//asigna un circulo como estilo del punto
+                        radius: visible ? (puntosNoPosibles.has(feature) ? 7 : 6) : 0, //si el punto es visible, el radio del circulo es 6, si no, es 0
+                        fill: new ol.style.Fill({color}),//asigna el color del circulo segun el estado del punto
+                        stroke: new ol.style.Stroke({//asigna un borde blanco al circulo
+                            color: "#ffffff",//color del borde del circulo
+                            width: 1.5//ancho del borde del circulo
+                        })
+                    })
+                }));
+            });
+        }
+
+        async function actualizarSheets() {//funcion para actualizar los datos de google sheets cada 60 segundos
+            const mensaje = document.getElementById("estadoSheets");//obtiene el elemento donde se mostrara el estado de la conexion con google sheets
+
+            try {//intenta realizar la peticion a google sheets y actualizar los datos de la aplicacion
+                const r = await fetch(urlSheets + "&t=" + Date.now());//realiza una peticion a google sheets con la url y un timestamp para evitar cache
+                if (!r.ok) throw new Error("Google Sheets no disponible");//si la respuesta no es ok, lanza un error
+
+                const texto = await r.text();//obtiene el texto de la respuesta de google sheets
+                const json = JSON.parse(//convierte el texto de la respuesta de google sheets en un objeto json
+                    texto.substring(texto.indexOf("(") + 1, texto.lastIndexOf(")"))//elimina los caracteres de inicio y fin de la respuesta de google sheets para obtener solo el objeto json
+                );
+
+                if (json.status !== "ok") throw new Error("Respuesta inválida");//si el estado de la respuesta de google sheets no es ok, lanza un error
+
+                datosSheets = {};//reinicia el objeto de datos de google sheets para almacenar los nuevos datos
+
+                json.table.rows.forEach(f => {//recorre cada fila de la respuesta de google sheets y obtiene los datos de cada punto y los almacena en el objeto de datos de google sheets
+                    const c = f.c || [];//obtiene los datos de cada celda de la fila
+                    const id = String(c[0]?.f ?? c[0]?.v ?? "").trim().toUpperCase();//obtiene el id del punto y lo normaliza para que sea consistente con los datos de qgis2web
+
+                    if (id) {//si el id del punto no es vacio, almacena los datos de la fila en el objeto de datos de google sheets
+                        datosSheets[id] = {//almacena los datos de la fila en el objeto de datos de google sheets con el id del punto como clave
+                            k: c[10]?.f ?? c[10]?.v ?? "",//obtiene la fecha de fundido del punto para determinar su estado
+                            l: c[11]?.f ?? c[11]?.v ?? ""//obtiene la fecha de replanteo del punto para determinar su estado
+                        };
+                    }
+                });
+
+                pintarPilotes();//pinta los puntos en el mapa con los nuevos datos de google sheets
+                actualizarAvance();//actualiza el avance de fundido con los nuevos datos de google sheets
+                buscarPuntos();
+
+                mensaje.textContent = "Google Sheets actualizado: " + new Date().toLocaleTimeString("es-CO"); //muestra el estado de la conexion con google sheets y la hora de la ultima actualizacion
+
+            } catch (error) {//si ocurre un error al realizar la peticion a google sheets, muestra un mensaje de error y conserva los datos de qgis2web
+                console.error(error);//muestra el error en la consola del navegador
+                mensaje.textContent = "Sin conexión. Se conservan los datos de QGIS.";//muestra el estado de la conexion con google sheets y que se conservan los datos de qgis2web
+                pintarPilotes();//pinta los puntos en el mapa con los datos de qgis2web cuando no hay conexion con google sheets
+                actualizarAvance();//actualiza el avance de fundido con los datos de qgis2web cuando no hay conexion con google sheets
+                buscarPuntos();
+            }
+        }
+
+        document.getElementById("todos").onclick = () => {//cuando se hace clic en el boton de todos, se asigna el filtro a TODOS y se pintan los puntos en el mapa
+            filtro = "TODOS";//asigna el filtro a TODOS
+            pintarPilotes();//pinta los puntos en el mapa con el filtro de TODOS
+        };
+
+        document.getElementById("fundidos").onclick = () => {//cuando se hace clic en el boton de fundidos, se asigna el filtro a FUNDIDO y se pintan los puntos en el mapa
+            filtro = "FUNDIDO";//asigna el filtro a FUNDIDO
+            pintarPilotes();//pinta los puntos en el mapa con el filtro de FUNDIDO
+        };
+
+        document.getElementById("ejecucion").onclick = () => {//cuando se hace clic en el boton de ejecucion, se asigna el filtro a EJECUCION y se pintan los puntos en el mapa
+            filtro = "EJECUCION";//asigna el filtro a EJECUCION
+            pintarPilotes();//pinta los puntos en el mapa con el filtro de EJECUCION
+        };
+
+        document.getElementById("pendientes").onclick = () => {//cuando se hace clic en el boton de pendientes, se asigna el filtro a PENDIENTE y se pintan los puntos en el mapa
+            filtro = "PENDIENTE";//asigna el filtro a PENDIENTE
+            pintarPilotes();//pinta los puntos en el mapa con el filtro de PENDIENTE
+        };
+
+        actualizarSheets();//llama a la funcion para actualizar los datos de google sheets al cargar la pagina
+        setInterval(actualizarSheets, 60000);//llama a la funcion para actualizar los datos de google sheets cada 60 segundos porque google sheets tiene un limite de 1 minuto para actualizar los datos
+
+        // ==========================================
+        // CALCULO AUTOMATICO DEL AVANCE DE FUNDIDO
+        // ==========================================
+
+        function tieneFechaFundido(valor) {//funcion para determinar si un valor tiene fecha de fundido valida
+
+            if (valor === null || valor === undefined) {//si el valor es nulo o indefinido, retorna falso
+                return false;//si el valor es nulo o indefinido, retorna falso
+            }
+
+            const fecha = String(valor).trim();//convierte el valor a string y elimina los espacios en blanco al inicio y al final
+
+            if (//si la fecha es vacia, nula o indefinida, retorna falso 
+                fecha === "" ||
+                fecha.toLowerCase() === "null" ||
+                fecha.toLowerCase() === "undefined"
+            ) {
+                return false;
+            }
+
+            return true;
+        }
+
+        function actualizarAvance() {//funcion para actualizar el avance de fundido de los puntos en el mapa y en la interfaz de usuario
+
+            const total = puntos.length;//obtiene el total de puntos en el mapa
+
+            const fundidosT1 = puntos.filter(p =>//filtra los puntos que tienen fecha de fundido valida y pertenecen a la torre T1
+                p.torre === "T1" && estado(p.feature) === "FUNDIDO"
+            ).length;
+
+            const fundidosT2 = puntos.filter(p =>//filtra los puntos que tienen fecha de fundido valida y pertenecen a la torre T2
+                p.torre === "T2" && estado(p.feature) === "FUNDIDO"
+            ).length;
+
+            const fundidos = fundidosT1 + fundidosT2;//suma los puntos fundidos de ambas torres
+
+            const pendientes = puntos.filter(p =>//filtra los puntos que no tienen fecha de fundido valida
+                estado(p.feature) === "PENDIENTE"
+            ).length;
+
+            const ejecucion = puntos.filter(p =>//filtra los puntos que tienen fecha de replanteo valida y no tienen fecha de fundido valida
+                estado(p.feature) === "EJECUCION"
+            ).length;
+            //calcula el porcentaje de avance de fundido de los puntos en el mapa y en la interfaz de usuario
+            const porcentaje = total > 0
+                ? (fundidos / total) * 100
+                : 0;
+            //calcula el porcentaje de avance de fundido de los puntos en la torre T1 y T2
+            const totalT1 = puntos.filter(p => p.torre === "T1").length;//calcula el total de puntos en la torre T1
+            const totalT2 = puntos.filter(p => p.torre === "T2").length;//calcula el total de puntos en la torre T2
+            //calcula el porcentaje de avance de fundido de los puntos en la torre T1
+            const avanceT1 = totalT1 > 0//
+                ? (fundidosT1 / totalT1) * 100
+                : 0;
+            //calcula el porcentaje de avance de fundido de los puntos en la torre T2
+            const avanceT2 = totalT2 > 0
+                ? (fundidosT2 / totalT2) * 100
+                : 0;
+            //actualiza el contenido de los elementos de la interfaz de usuario con los valores calculados  
+            document.getElementById("porcentajeAvance").textContent =
+                porcentaje.toFixed(1) + "%";
+            //actualiza el ancho de la barra de avance con el porcentaje calculado
+            document.getElementById("barraAvance").style.width =
+                porcentaje + "%";
+            //actualiza el contenido de los elementos de la interfaz de usuario con los valores calculados
+            document.getElementById("detalleAvance").textContent =
+                `${fundidos} de ${total} fundidos | ${ejecucion} en ejecución | ${pendientes} pendientes`;
+            //actualiza el contenido de los elementos de la interfaz de usuario con los valores calculados
+            document.getElementById("avanceTorres").textContent =
+                `T1: ${avanceT1.toFixed(1)}% (${fundidosT1}/${totalT1}) | ` +
+                `T2: ${avanceT2.toFixed(1)}% (${fundidosT2}/${totalT2})`;
+            //cambia el color de la barra de avance segun el porcentaje calculado
+            const barra = document.getElementById("barraAvance");
+            //cambia el color de la barra de avance segun el porcentaje calculado
+            if (porcentaje < 5) {
+                barra.style.background = "#dc2626";//color rojo para porcentaje menor a 5%
+            } else if (porcentaje < 10) {
+                barra.style.background = "#f59e0b";//color amarillo para porcentaje entre 5% y 10%
+            } else {
+                barra.style.background = "#16a34a";//color verde para porcentaje mayor a 10%
+            }
+        }
+        //
+        const atributo = document.getElementById("atributo");//identificador de atributo para filtrar
+        const resultado = document.getElementById("results");//identificador de resultados para mostrar los puntos encontrados
+        const mapaSeleccion = new ol.source.Vector();//identificador de mapa de seleccion para mostrar el punto seleccionado en el mapa
+        const capaSeleccion = new ol.layer.Vector({//identificador de capa de seleccion para mostrar el punto seleccionado en el mapa
+            source: mapaSeleccion,//identificador de fuente de mapa de seleccion para mostrar el punto seleccionado en el mapa
+            style: new ol.style.Style({//identificador de estilo de capa de seleccion para mostrar el punto seleccionado en el mapa
+                image: new ol.style.Circle({//identificador de circulo de estilo de capa de seleccion para mostrar el punto seleccionado en el mapa
+                    radius: 9,//radio del circulo de estilo de capa de seleccion para mostrar el punto seleccionado en el mapa
+                    fill: new ol.style.Fill({color:"#2563eb"}),//color del circulo de estilo de capa de seleccion para mostrar el punto seleccionado en el mapa
+                    stroke: new ol.style.Stroke({color:"#fff",width:3})//borde del circulo de estilo de capa de seleccion para mostrar el punto seleccionado en el mapa
                 })
             })
         });
-        map.addLayer(capaSeleccion);
+        map.addLayer(capaSeleccion);//agrega la capa de seleccion al mapa
 
-        function normalizar(valor) {
-            return String(valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+        function normalizar(valor) {//funcion para normalizar los valores de los atributos y los valores de busqueda para que sean comparables
+            return String(valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();//convierte el valor a string, elimina los acentos, convierte a minusculas y elimina los espacios en blanco al inicio y al final
         }
 
-        function buscarPuntos() {
-            const torre = document.getElementById("torre").value;
-            const campo = atributo.value;
-            const texto = normalizar(document.getElementById("consulta").value);
-            const encontrados = puntos.filter(({torre:piso, feature}) => {
-                if (torre && torre !== piso) return false;
-                const propiedades = feature.getProperties();
-                const valores = campo ? [propiedades[campo]] : Object.values(propiedades);
-                return !texto || valores.some(valor => normalizar(valor).includes(texto));
+        function buscarPuntos() {//funcion para buscar los puntos en el mapa segun los criterios de busqueda
+            const torre = document.getElementById("torre").value;//obtiene el valor del filtro de torre
+            const campo = atributo.value;//obtiene el valor del filtro de atributo
+            const texto = normalizar(document.getElementById("consulta").value);//obtiene el valor del filtro de texto y lo normaliza
+            const encontrados = puntos.filter(({torre:piso, feature}) => {//filtra los puntos segun los criterios de busqueda
+                if (torre && torre !== piso) return false;//si el filtro de torre no es vacio y no coincide con la torre del punto, no lo incluye en los resultados
+                const propiedades = feature.getProperties();//obtiene las propiedades del punto
+                const valores = campo ? [propiedades[campo]] : Object.values(propiedades);//si el filtro de atributo no es vacio, obtiene el valor del atributo del punto, si no, obtiene todos los valores de las propiedades del punto
+                return !texto || valores.some(valor => normalizar(valor).includes(texto));//si el filtro de texto no es vacio, verifica si alguno de los valores de las propiedades del punto contiene el texto de busqueda
             });
-            document.getElementById("totalResultados").textContent = encontrados.length;
+            document.getElementById("totalResultados").textContent = encontrados.length;//actualiza el contador de resultados
             document.getElementById("resultSummary").textContent =
-                `${encontrados.length} punto${encontrados.length === 1 ? "" : "s"} encontrado${encontrados.length === 1 ? "" : "s"}`;
-            resultado.replaceChildren();
-            if (!encontrados.length) {
+                `${encontrados.length} punto${encontrados.length === 1 ? "" : "s"} encontrado${encontrados.length === 1 ? "" : "s"}`;//actualiza el resumen de resultados
+            resultado.replaceChildren();//limpia los resultados anteriores
+            if (!encontrados.length) {//si no se encontraron resultados, muestra un mensaje de que no se encontraron puntos con esos criterios
                 resultado.innerHTML = '<div class="empty">No se encontraron puntos con esos criterios.</div>';
                 return;
             }
-            encontrados.forEach(({torre:piso, feature}) => {
-                const datos = feature.getProperties();
-                const item = document.createElement("button");
-                item.type = "button";
-                item.className = "result";
-                const titulo = document.createElement("strong");
-                titulo.textContent = `${datos.id || "Punto"} · ${piso}`;
-                const detalle = document.createElement("span");
-                detalle.textContent = `Fundido: ${datos.FechaFundido || "—"} | Replanteo: ${datos.FechaReplanteo || "—"} | Replanteado: ${datos.replanteado || "—"}`;
-                item.append(titulo, detalle);
-                item.addEventListener("click", () => seleccionarPunto(feature, datos.id));
-                resultado.appendChild(item);
+            encontrados.forEach(({torre:piso, feature}) => {//recorre los puntos encontrados y crea un elemento para cada uno de ellos con su informacion y un boton para seleccionarlo en el mapa
+                const datos = feature.getProperties();//obtiene las propiedades del punto
+
+                const id = String(datos.id || "").trim().toUpperCase();//obtiene el id del punto y lo normaliza para que sea consistente con los datos de qgis2web y google sheets
+                const sheet = datosSheets[id];//busca el id del punto en los datos de google sheets para obtener la fecha de fundido y la fecha de replanteo
+                //si el id del punto no se encuentra en los datos de google sheets, utiliza los datos de qgis2web para obtener la fecha de fundido 
+                const fechaFundido = sheet
+                    ? sheet.k
+                    : datos.FechaFundido;
+                //si el id del punto no se encuentra en los datos de google sheets, utiliza los datos de qgis2web para obtener la fecha de replanteo
+                const fechaReplanteo = sheet
+                    ? sheet.l
+                    : datos.FechaReplanteo;
+
+                const item = document.createElement("button");//crea un elemento de boton para cada punto encontrado
+                item.type = "button";//asigna el tipo de boton al elemento
+                item.className = "result";//asigna la clase de resultado al elemento
+                const titulo = document.createElement("strong");//crea un elemento de titulo para cada punto encontrado
+                titulo.textContent = `${datos.id || "Punto"} · ${piso}`;//asigna el contenido del titulo al elemento
+                const detalle = document.createElement("span");//crea un elemento de detalle para cada punto encontrado
+                const bloqueo = puntosNoPosibles.get(feature);
+                detalle.textContent =
+                    `Estado: ${bloqueo
+                        ? bloqueo.enEjecucion
+                            ? "NO POSIBLE (durante la ejecución y hasta 48 h después del fundido)"
+                            : "NO POSIBLE hasta " + new Date(bloqueo.vence).toLocaleString("es-CO")
+                        : estado(feature)} | ` +
+                    `Fundido: ${fechaFundido || "—"} | ` +
+                    `Replanteo: ${fechaReplanteo || "—"} | ` +
+                    `Replanteado: ${datos.replanteado || "—"}`;
+                item.append(titulo, detalle);//asigna el titulo y el detalle al elemento de boton
+                item.addEventListener("click", () => seleccionarPunto(feature, datos.id));//asigna un evento de click al elemento de boton para seleccionar el punto en el mapa
+                resultado.appendChild(item);//agrega el elemento de boton al contenedor de resultados
             });
         }
 
-        function seleccionarPunto(feature, id) {
-            const marcado = feature.clone();
-            mapaSeleccion.clear();
-            mapaSeleccion.addFeature(marcado);
-            document.getElementById("puntoSeleccionado").textContent = id || "Punto";
-            map.getView().fit(feature.getGeometry().getExtent(), {
-                size: map.getSize(), maxZoom: 20, duration: 500, padding: [80,80,80,80]
+        function seleccionarPunto(feature, id) {//funcion para seleccionar un punto en el mapa y mostrar su informacion en la interfaz de usuario
+            const marcado = feature.clone();//clona el punto seleccionado para mostrarlo en el mapa de seleccion
+            mapaSeleccion.clear();//limpia el mapa de seleccion para mostrar solo el punto seleccionado
+            mapaSeleccion.addFeature(marcado);//agrega el punto seleccionado al mapa de seleccion
+            document.getElementById("puntoSeleccionado").textContent = id || "Punto";//actualiza el contenido del elemento de punto seleccionado con el id del punto seleccionado
+            map.getView().fit(feature.getGeometry().getExtent(), {//ajusta la vista del mapa para mostrar el punto seleccionado
+                size: map.getSize(), maxZoom: 20, duration: 500, padding: [80,80,80,80]//ajusta la vista del mapa para mostrar el punto seleccionado con un zoom maximo de 20 y una duracion de 500 milisegundos y un padding de 80 pixeles en cada lado
             });
         }
 
-        const campos = [...new Set(puntos.flatMap(({feature}) =>
-            Object.keys(feature.getProperties()).filter(key => key !== "geometry")
-        ))].sort((a,b) => a.localeCompare(b,"es"));
-        campos.forEach(campo => atributo.add(new Option(campo, campo)));
-        atributo.value = "";
-        document.getElementById("torre").value = "";
-        document.getElementById("fecha").textContent = new Date().toLocaleDateString("es-CO");
-        document.getElementById("totalPuntos").textContent = puntos.length;
-        document.getElementById("buscar").addEventListener("click", buscarPuntos);
-        document.getElementById("limpiar").addEventListener("click", () => {
-            document.getElementById("torre").value = "";
-            atributo.value = "";
-            document.getElementById("consulta").value = "";
-            document.getElementById("puntoSeleccionado").textContent = "—";
-            mapaSeleccion.clear();
-            buscarPuntos();
+        const campos = [...new Set(puntos.flatMap(({feature}) =>//crea un arreglo de campos unicos para el filtro de atributo
+            Object.keys(feature.getProperties()).filter(key => key !== "geometry")//excluye el campo de geometria del arreglo de campos unicos
+        ))].sort((a,b) => a.localeCompare(b,"es"));//ordena el arreglo de campos unicos alfabeticamente segun el idioma español
+        campos.forEach(campo => atributo.add(new Option(campo, campo)));//agrega los campos unicos al filtro de atributo como opciones de seleccion
+        atributo.value = "";//asigna el valor del filtro de atributo a vacio para que no se filtre por ningun atributo al inicio
+        document.getElementById("torre").value = "";//asigna el valor del filtro de torre a vacio para que no se filtre por ninguna torre al inicio
+        document.getElementById("fecha").textContent = new Date().toLocaleDateString("es-CO");//actualiza el contenido del elemento de fecha con la fecha actual en formato de fecha de Colombia
+        document.getElementById("totalPuntos").textContent = puntos.length;//actualiza el contenido del elemento de total de puntos con el total de puntos en el mapa
+        pintarPilotes();
+        document.getElementById("buscar").addEventListener("click", buscarPuntos);//asigna un evento de click al boton de buscar para ejecutar la funcion de buscar puntos
+        document.getElementById("limpiar").addEventListener("click", () => {//asigna un evento de click al boton de limpiar para limpiar los filtros y los resultados
+            document.getElementById("torre").value = "";//asigna el valor del filtro de torre a vacio para que no se filtre por ninguna torre
+            atributo.value = "";//asigna el valor del filtro de atributo a vacio para que no se filtre por ningun atributo
+            document.getElementById("consulta").value = "";//asigna el valor del filtro de texto a vacio para que no se filtre por ningun texto
+            document.getElementById("puntoSeleccionado").textContent = "—";//actualiza el contenido del elemento de punto seleccionado con un guion para indicar que no hay ningun punto seleccionado
+            mapaSeleccion.clear();//limpia el mapa de seleccion para que no se muestre ningun punto seleccionado
+            buscarPuntos();//ejecuta la funcion de buscar puntos para mostrar todos los puntos en el mapa y en los resultados
         });
-        document.getElementById("consulta").addEventListener("keydown", event => {
-            if (event.key === "Enter") buscarPuntos();
+        document.getElementById("consulta").addEventListener("keydown", event => {//asigna un evento de keydown al filtro de texto para ejecutar la funcion de buscar puntos cuando se presiona la tecla Enter
+            if (event.key === "Enter") buscarPuntos();//ejecuta la funcion de buscar puntos cuando se presiona la tecla Enter
         });
-        document.getElementById("torre").addEventListener("change", buscarPuntos);
-        buscarPuntos();
+        document.getElementById("torre").addEventListener("change", buscarPuntos);//asigna un evento de change al filtro de torre para ejecutar la funcion de buscar puntos cuando se cambia el valor del filtro de torre
+        buscarPuntos();//ejecuta la funcion de buscar puntos al cargar la pagina para mostrar todos los puntos en el mapa y en los resultados
+        actualizarAvance();//ejecuta la funcion de actualizar el avance de fundido al cargar la pagina para mostrar el avance de fundido de los puntos en el mapa y en la interfaz de usuario
     </script>
 </body>
 </html>
