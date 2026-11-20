@@ -361,7 +361,7 @@
                 const visible = filtro === "TODOS" || filtro === e;//si el filtro es TODOS o el estado del punto coincide con el filtro, el punto es visible
 
                 feature.setStyle((punto, resolucion) => {
-                    const mostrarEtiqueta = visible && resolucion <= 0.65;
+                    const mostrarEtiqueta = visible && resolucion <= 0.1;
                     const tamanoTexto = Math.max(9, Math.min(12, 12 - Math.log2(resolucion / 0.15)));
                     return new ol.style.Style({
                         image: new ol.style.Circle({
