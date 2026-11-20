@@ -402,15 +402,12 @@
                     const id = String(c[0]?.f ?? c[0]?.v ?? "").trim().toUpperCase();//obtiene el id del punto y lo normaliza para que sea consistente con los datos de qgis2web
 
                     if (id) {//si el id del punto no es vacio, almacena los datos de la fila en el objeto de datos de google sheets
-                       
-datosSheets[id] = {
-    k: c[10]?.f ?? c[10]?.v ?? "",
-    l: c[11]?.f ?? c[11]?.v ?? "",
-    campos: c.map((celda, i) => ({
-        nombre: json.table.cols[i]?.label || json.table.cols[i]?.id || `Columna ${i+1}`,
-        valor: celda?.f ?? celda?.v ?? ""
-    }))
-};
+                      datosSheets[id] = {//almacena los datos de la fila en el objeto de datos de google sheets con el id del punto como clave
+                            k: c[10]?.f ?? c[10]?.v ?? "",//obtiene la fecha de fundido del punto para determinar su estado
+                            l: c[11]?.f ?? c[11]?.v ?? ""//obtiene la fecha de replanteo del punto para determinar su estado
+                        };
+                    }
+                });
 
                 pintarPilotes();//pinta los puntos en el mapa con los nuevos datos de google sheets
                 actualizarAvance();//actualiza el avance de fundido con los nuevos datos de google sheets
