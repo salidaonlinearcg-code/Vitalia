@@ -1,15 +1,14 @@
-<!doctype html> // Uso de HTML5
-<html lang="es">//idioma español
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="utf-8">//Caracteres especiales
-    <meta name="viewport" content="width=device-width, initial-scale=1">//vista de celular
-    <title>Consulta de puntos T1 y T2</title> // titulo de la pestaña de navegacion
-    <link rel="stylesheet" href="./resources/ol.css"> // estilos de open layers
-    <link rel="stylesheet" href="./resources/fontawesome-all.min.css"> // estilos de iconos
-    <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css"> // estilos de autocompletado    
-    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">// estilos de selector de capas
-    <link rel="stylesheet" href="./resources/qgis2web.css">// estilos generados por qgis2web
-    //control de apariencias de la pagina
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Consulta de pilotes T1, T2, SC y T3</title>
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="./resources/fontawesome-all.min.css">
+    <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
     <style> 
         *{box-sizing:border-box}body{margin:0;background:#f3f6f9;color:#1f2937;font:14px Arial,sans-serif}
         header,.panel-title{background:#0f3d56;color:white}header{padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -64,23 +63,11 @@
             color: #16a34a;
         }
 
-      /*  @media(max-width: 900px) {
-            .dashboard {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media(max-width: 550px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-        }*/
-
     </style>
 </head>
 <body>
     <header>
-        <div><h1>Consulta de puntos T1 y T2</h1><span>Busca puntos por fecha o cualquier atributo y selecciónalos para ubicarlos en el mapa</span></div>
+        <div><h1>Consulta de pilotes T1, T2, SC y T3</h1><span>Busca puntos por fecha o cualquier atributo y selecciónalos para ubicarlos en el mapa</span></div>
         <span id="fecha"></span>
     </header>
     <main class="container">
@@ -89,32 +76,32 @@
 
              <div class="card">
                   <div class="label">Puntos disponibles</div>
-                 <div class="value" id="totalPuntos">0</div>//identificador de total de puntos
+                 <div class="value" id="totalPuntos">0</div>
              </div>
 
             <div class="card">
                 <div class="label">Resultados</div>
-                <div class="value" id="totalResultados">0</div>//identificador de total de resultados
+                <div class="value" id="totalResultados">0</div>
             </div>
 
             <div class="card">
                 <div class="label">Punto seleccionado</div>
-                <div class="value" id="puntoSeleccionado">—</div>     //identificador de punto seleccionado
+                <div class="value" id="puntoSeleccionado">—</div>
             </div>
 
             <div class="card avance-card">
                 <div class="label">Avance de fundido</div>
-                <div class="value" id="porcentajeAvance">0%</div>//identificador de porcentaje de avance
+                <div class="value" id="porcentajeAvance">0%</div>
 
                 <div class="barra-avance">
-                    <div id="barraAvance"></div>//identificador de barra de avance
+                    <div id="barraAvance"></div>
                 </div>
 
                 <div id="detalleAvance" class="detalle-avance">
                     0 de 0 pilotes fundidos
                 </div>
 
-                <div id="avanceTorres" class="detalle-avance">//
+                <div id="avanceTorres" class="detalle-avance">
                     T1: 0% | T2: 0%
                 </div>
             </div>
@@ -134,16 +121,18 @@
 
 
         </section>
-            /*panel de consulta de atributos y localizacion de puntos*/
+            <!-- Panel de consulta de atributos y localización de puntos -->
         <div class="layout">
             <section class="panel">
                 <div class="panel-title">Consulta por atributos</div>
                 <div class="filters">
                     <label for="torre">Puntos</label>
                     <select id="torre">
-                        <option value="">T1 y T2</option>
+                        <option value="">Todas las torres</option>
                         <option value="T1">Coordenadas T1</option>
                         <option value="T2">Coordenadas T2</option>
+                        <option value="SC">Coordenadas SC</option>
+                        <option value="T3">Coordenadas T3</option>
                     </select>
                     <label for="atributo">Atributo</label>
                     <select id="atributo"><option value="">Cualquier atributo</option></select>
@@ -170,25 +159,29 @@
             </section>
         </div>
     </main>
-    /*carga de capas y estilos de qgis2web y openlayers*/
+    <!-- Carga de bibliotecas, datos y estilos exportados desde QGIS -->
     <script src="./resources/qgis2web_expressions.js"></script>
     <script src="./resources/functions.js"></script>
     <script src="./resources/ol.js"></script>
     <script src="./resources/ol-layerswitcher.js"></script>
     <script src="./resources/photon-geocoder-autocomplete.min.js"></script>
     <script src="./resources/olms.js"></script>
-    <script src="./layers/Lote_Proyecto_2.js"></script>
-    <script src="./layers/Plataforma_3.js"></script>
-    <script src="./layers/Limite_T1_4.js"></script>
-    <script src="./layers/Limite_T2_5.js"></script>
-    <script src="./layers/PilotesT1_6.js"></script>
-    <script src="./layers/PilotesT2_7.js"></script>
-    <script src="./styles/Lote_Proyecto_2_style.js"></script>
-    <script src="./styles/Plataforma_3_style.js"></script>
-    <script src="./styles/Limite_T1_4_style.js"></script>
-    <script src="./styles/Limite_T2_5_style.js"></script>
-    <script src="./styles/PilotesT1_6_style.js"></script>
-    <script src="./styles/PilotesT2_7_style.js"></script>
+    <script src="./layers/Lote_Proyecto_1.js"></script>
+    <script src="./layers/Plataforma_2.js"></script>
+    <script src="./layers/Limite_T1_3.js"></script>
+    <script src="./layers/Limite_T2_4.js"></script>
+    <script src="./layers/PilotesT1_5.js"></script>
+    <script src="./layers/PilotesT2_6.js"></script>
+    <script src="./layers/pilotes_sc_7.js"></script>
+    <script src="./layers/pilotes_T3_8.js"></script>
+    <script src="./styles/Lote_Proyecto_1_style.js"></script>
+    <script src="./styles/Plataforma_2_style.js"></script>
+    <script src="./styles/Limite_T1_3_style.js"></script>
+    <script src="./styles/Limite_T2_4_style.js"></script>
+    <script src="./styles/PilotesT1_5_style.js"></script>
+    <script src="./styles/PilotesT2_6_style.js"></script>
+    <script src="./styles/pilotes_sc_7_style.js"></script>
+    <script src="./styles/pilotes_T3_8_style.js"></script>
     <script src="./layers/layers.js"></script>
     <script src="./resources/Autolinker.min.js"></script>
     <script src="./resources/qgis2web.js"></script>
@@ -196,13 +189,16 @@
 
         /*identificacion capa puntos*/ 
         const capasPuntos = [
-            {torre:"T1", capa:lyr_PilotesT1_6},
-            {torre:"T2", capa:lyr_PilotesT2_7}
+            {torre:"T1", capa:lyr_PilotesT1_5},
+            {torre:"T2", capa:lyr_PilotesT2_6},
+            {torre:"SC", capa:lyr_pilotes_sc_7},
+            {torre:"T3", capa:lyr_pilotes_T3_8}
         ];
         /*creacion de arreglo de puntos con torre, capa y geometria*/
         const puntos = capasPuntos.flatMap(({torre, capa}) =>
             capa.getSource().getFeatures().map(feature => ({torre, capa, feature}))
         );
+       // capasPuntos.forEach(({capa}) => capa.setDeclutter("etiquetas-pilotes"));
         
         // VITALIA - GOOGLE SHEETS DIRECTO
         const urlSheets = "https://docs.google.com/spreadsheets/d/1QcTXxKmxnbQgfVEV8gqs4-CYZAzX9WAzw14mLPriSwE/gviz/tq?tqx=out:json&sheet=P_VTL&headers=0";
@@ -227,18 +223,18 @@
             const id = String(feature.get("id") || "").trim().toUpperCase();//obtiene el id del punto y lo normaliza
             const d = datosSheets[id];//busca el id en los datos de google sheets
 
-            const k = d ? d.k : feature.get("FechaFundido");//si existe el id en los datos de google sheets, obtiene la fecha de fundido, si no, obtiene la fecha de fundido de los datos de qgis2web
-            const l = d ? d.l : feature.get("FechaReplanteo");//si existe el id en los datos de google sheets, obtiene la fecha de replanteo, si no, obtiene la fecha de replanteo de los datos de qgis2web
+            const k = d ? d.k : feature.get("FechaFundido") ?? feature.get("FechaFundi");
+            const l = d ? d.l : feature.get("FechaReplanteo") ?? feature.get("FechaRepla");
 
-            if (k) return "FUNDIDO";//si existe la fecha de fundido, el estado es FUNDIDO
-            if (l) return "EJECUCION";//si existe la fecha de replanteo, el estado es EJECUCION
+            if (tieneFechaFundido(k)) return "FUNDIDO";//si existe una fecha de fundido válida, el estado es FUNDIDO
+            if (tieneFechaFundido(l)) return "EJECUCION";//si existe una fecha de replanteo válida, el estado es EJECUCION
             return "PENDIENTE";//si no existe ninguna fecha, el estado es PENDIENTE
         }
 
         function obtenerFechaFundido(feature) {
             const id = String(feature.get("id") || "").trim().toUpperCase();
             const datos = datosSheets[id];
-            return datos ? datos.k : feature.get("FechaFundido");
+            return datos ? datos.k : feature.get("FechaFundido") ?? feature.get("FechaFundi");
         }
 
         function convertirFecha(valor) {
@@ -329,7 +325,7 @@
                 const coordenada = feature.getGeometry().getCoordinates();
                 const latitud = ol.proj.toLonLat(coordenada)[1] * Math.PI / 180;
                 fuenteBuffers.addFeature(new ol.Feature({
-                    geometry: new ol.geom.Circle(coordenada, radioBufferMetros / Math.cos(latitud))
+                    geometry: new ol.geom.Circle(coordenada, radioBufferMetros * Math.cos(latitud))
                 }));
 
                 puntos.forEach(({feature: objetivo}) => {
@@ -364,16 +360,24 @@
 
                 const visible = filtro === "TODOS" || filtro === e;//si el filtro es TODOS o el estado del punto coincide con el filtro, el punto es visible
 
-                feature.setStyle(new ol.style.Style({//asigna el estilo del punto segun su estado y visibilidad
-                    image: new ol.style.Circle({//asigna un circulo como estilo del punto
-                        radius: visible ? (puntosNoPosibles.has(feature) ? 7 : 6) : 0, //si el punto es visible, el radio del circulo es 6, si no, es 0
-                        fill: new ol.style.Fill({color}),//asigna el color del circulo segun el estado del punto
-                        stroke: new ol.style.Stroke({//asigna un borde blanco al circulo
-                            color: "#ffffff",//color del borde del circulo
-                            width: 1.5//ancho del borde del circulo
-                        })
-                    })
-                }));
+                feature.setStyle((punto, resolucion) => {
+                    const mostrarEtiqueta = visible && resolucion <= 0.65;
+                    const tamanoTexto = Math.max(9, Math.min(12, 12 - Math.log2(resolucion / 0.15)));
+                    return new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: visible ? (puntosNoPosibles.has(feature) ? 7 : 6) : 0,
+                            fill: new ol.style.Fill({color}),
+                            stroke: new ol.style.Stroke({color: "#ffffff", width: 1.5})
+                        }),
+                        text: mostrarEtiqueta
+                            ? createTextStyle(
+                                punto, resolucion, String(punto.get("id") || ""),
+                                `${tamanoTexto}px Arial, sans-serif`, "#1f2937", "point",
+                                "#ffffff", 3, "left", 9, 0, false, 0
+                            )
+                            : undefined
+                    });
+                });
             });
         }
 
@@ -470,15 +474,7 @@
 
             const total = puntos.length;//obtiene el total de puntos en el mapa
 
-            const fundidosT1 = puntos.filter(p =>//filtra los puntos que tienen fecha de fundido valida y pertenecen a la torre T1
-                p.torre === "T1" && estado(p.feature) === "FUNDIDO"
-            ).length;
-
-            const fundidosT2 = puntos.filter(p =>//filtra los puntos que tienen fecha de fundido valida y pertenecen a la torre T2
-                p.torre === "T2" && estado(p.feature) === "FUNDIDO"
-            ).length;
-
-            const fundidos = fundidosT1 + fundidosT2;//suma los puntos fundidos de ambas torres
+            const fundidos = puntos.filter(p => estado(p.feature) === "FUNDIDO").length;
 
             const pendientes = puntos.filter(p =>//filtra los puntos que no tienen fecha de fundido valida
                 estado(p.feature) === "PENDIENTE"
@@ -491,17 +487,12 @@
             const porcentaje = total > 0
                 ? (fundidos / total) * 100
                 : 0;
-            //calcula el porcentaje de avance de fundido de los puntos en la torre T1 y T2
-            const totalT1 = puntos.filter(p => p.torre === "T1").length;//calcula el total de puntos en la torre T1
-            const totalT2 = puntos.filter(p => p.torre === "T2").length;//calcula el total de puntos en la torre T2
-            //calcula el porcentaje de avance de fundido de los puntos en la torre T1
-            const avanceT1 = totalT1 > 0//
-                ? (fundidosT1 / totalT1) * 100
-                : 0;
-            //calcula el porcentaje de avance de fundido de los puntos en la torre T2
-            const avanceT2 = totalT2 > 0
-                ? (fundidosT2 / totalT2) * 100
-                : 0;
+            const avances = capasPuntos.map(({torre}) => {
+                const deTorre = puntos.filter(p => p.torre === torre);
+                const fundidosTorre = deTorre.filter(p => estado(p.feature) === "FUNDIDO").length;
+                const porcentajeTorre = deTorre.length ? (fundidosTorre / deTorre.length) * 100 : 0;
+                return `${torre}: ${porcentajeTorre.toFixed(1)}% (${fundidosTorre}/${deTorre.length})`;
+            });
             //actualiza el contenido de los elementos de la interfaz de usuario con los valores calculados  
             document.getElementById("porcentajeAvance").textContent =
                 porcentaje.toFixed(1) + "%";
@@ -513,8 +504,7 @@
                 `${fundidos} de ${total} fundidos | ${ejecucion} en ejecución | ${pendientes} pendientes`;
             //actualiza el contenido de los elementos de la interfaz de usuario con los valores calculados
             document.getElementById("avanceTorres").textContent =
-                `T1: ${avanceT1.toFixed(1)}% (${fundidosT1}/${totalT1}) | ` +
-                `T2: ${avanceT2.toFixed(1)}% (${fundidosT2}/${totalT2})`;
+                avances.join(" | ");
             //cambia el color de la barra de avance segun el porcentaje calculado
             const barra = document.getElementById("barraAvance");
             //cambia el color de la barra de avance segun el porcentaje calculado
@@ -572,11 +562,11 @@
                 //si el id del punto no se encuentra en los datos de google sheets, utiliza los datos de qgis2web para obtener la fecha de fundido 
                 const fechaFundido = sheet
                     ? sheet.k
-                    : datos.FechaFundido;
+                    : datos.FechaFundido ?? datos.FechaFundi;
                 //si el id del punto no se encuentra en los datos de google sheets, utiliza los datos de qgis2web para obtener la fecha de replanteo
                 const fechaReplanteo = sheet
                     ? sheet.l
-                    : datos.FechaReplanteo;
+                    : datos.FechaReplanteo ?? datos.FechaRepla;
 
                 const item = document.createElement("button");//crea un elemento de boton para cada punto encontrado
                 item.type = "button";//asigna el tipo de boton al elemento
@@ -593,12 +583,55 @@
                         : estado(feature)} | ` +
                     `Fundido: ${fechaFundido || "—"} | ` +
                     `Replanteo: ${fechaReplanteo || "—"} | ` +
-                    `Replanteado: ${datos.replanteado || "—"}`;
+                    `Replanteado: ${datos.replanteado ?? datos.replantead ?? "—"}`;
                 item.append(titulo, detalle);//asigna el titulo y el detalle al elemento de boton
                 item.addEventListener("click", () => seleccionarPunto(feature, datos.id));//asigna un evento de click al elemento de boton para seleccionar el punto en el mapa
                 resultado.appendChild(item);//agrega el elemento de boton al contenedor de resultados
             });
         }
+
+        function mostrarPopupPilote(feature, coordenada) {
+            const datos = feature.getProperties();
+            const id = String(datos.id || "").trim().toUpperCase();
+            const sheet = datosSheets[id];
+            const fechaFundido = sheet?.k || datos.FechaFundido || datos.FechaFundi;
+            const fechaReplanteo = sheet?.l || datos.FechaReplanteo || datos.FechaRepla;
+            const [longitud, latitud] = ol.proj.toLonLat(coordenada);
+            const mostrarValor = valor =>
+                valor == null || ["", "null", "undefined"].includes(String(valor).trim().toLowerCase())
+                    ? "—"
+                    : String(valor);
+
+            const popup = document.getElementById("popup-content");
+            const titulo = document.createElement("strong");
+            titulo.textContent = id;
+            const tabla = document.createElement("table");
+            const filas = [
+                ["Fecha de fundido", mostrarValor(fechaFundido)],
+                ["Fecha de replanteo", mostrarValor(fechaReplanteo)],
+                ["Coordenadas", `Plano X/Y: ${mostrarValor(datos.x_plano)} / ${mostrarValor(datos.y_plano)}; Campo X/Y: ${mostrarValor(datos.x_campo)} / ${mostrarValor(datos.y_campo)}`],
+                ["Volumen teórico", mostrarValor(datos.volTeorico)],
+                ["Volumen final", mostrarValor(datos.volFinal)]
+            ];
+            filas.forEach(([etiqueta, valor]) => {
+                const fila = tabla.insertRow();
+                fila.insertCell().textContent = etiqueta;
+                fila.insertCell().textContent = valor;
+            });
+            popup.replaceChildren(titulo, tabla);
+            document.getElementById("popup").style.display = "block";
+            overlayPopup.setPosition(coordenada);
+        }
+
+        map.on("singleclick", event => {
+            map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
+                if (capasPuntos.some(({capa}) => capa === layer)) {
+                    mostrarPopupPilote(feature, event.coordinate);
+                    return true;
+                }
+                return undefined;
+            });
+        });
 
         function seleccionarPunto(feature, id) {//funcion para seleccionar un punto en el mapa y mostrar su informacion en la interfaz de usuario
             const marcado = feature.clone();//clona el punto seleccionado para mostrarlo en el mapa de seleccion
@@ -608,6 +641,7 @@
             map.getView().fit(feature.getGeometry().getExtent(), {//ajusta la vista del mapa para mostrar el punto seleccionado
                 size: map.getSize(), maxZoom: 20, duration: 500, padding: [80,80,80,80]//ajusta la vista del mapa para mostrar el punto seleccionado con un zoom maximo de 20 y una duracion de 500 milisegundos y un padding de 80 pixeles en cada lado
             });
+            mostrarPopupPilote(feature, feature.getGeometry().getCoordinates());
         }
 
         const campos = [...new Set(puntos.flatMap(({feature}) =>//crea un arreglo de campos unicos para el filtro de atributo

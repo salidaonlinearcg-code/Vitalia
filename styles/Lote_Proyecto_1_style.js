@@ -23,7 +23,7 @@ var style_Lote_Proyecto_1 = function(feature, resolution){
         labelText = String("");
     }
     var style = [ new ol.style.Style({
-        stroke: new ol.style.Stroke({color: 'rgba(191,153,153,1.0)', lineDash: [5.749399999999999,1.1498799999999998], lineCap: 'butt', lineJoin: 'miter', width: 1.1498799999999998}),fill: new ol.style.Fill({color: 'rgba(249,245,131,1.0)'}),
+        stroke: new ol.style.Stroke({color: 'rgba(53,121,177,1.0)', lineDash: [11.552,5.776], lineCap: 'square', lineJoin: 'bevel', width: 2.888}),
         text: createTextStyle(feature, resolution, labelText, labelFont,
                               labelFill, placement, bufferColor,
                               bufferWidth, textAlign, offsetX, offsetY, overflow, repeat)
