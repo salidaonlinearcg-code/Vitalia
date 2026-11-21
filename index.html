@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Consulta de pilotes T1, T2, SC y T3</title>
+    <title>Consulta de puntos T1, T2, SC y T3</title>
     <link rel="stylesheet" href="./resources/ol.css">
     <link rel="stylesheet" href="./resources/fontawesome-all.min.css">
     <link rel="stylesheet" href="./resources/photon-geocoder-autocomplete.min.css">
@@ -361,7 +361,7 @@
                 const visible = filtro === "TODOS" || filtro === e;//si el filtro es TODOS o el estado del punto coincide con el filtro, el punto es visible
 
                 feature.setStyle((punto, resolucion) => {
-                    const mostrarEtiqueta = visible && resolucion <= 0.1;
+                    const mostrarEtiqueta = visible && resolucion <= 0.15;
                     const tamanoTexto = Math.max(9, Math.min(12, 12 - Math.log2(resolucion / 0.15)));
                     return new ol.style.Style({
                         image: new ol.style.Circle({
@@ -381,48 +381,46 @@
             });
         }
 
-        async function actualizarSheets() {//funcion para actualizar los datos de google sheets cada 60 segundos
-            const mensaje = document.getElementById("estadoSheets");//obtiene el elemento donde se mostrara el estado de la conexion con google sheets
+        
+        async function actualizarSheets() {
+            try {
+                const r = await fetch(urlSheets + "&t=" + Date.now());
+                const t = await r.text();
+                const j = JSON.parse(t.slice(t.indexOf("(") + 1, t.lastIndexOf(")")));
 
-            try {//intenta realizar la peticion a google sheets y actualizar los datos de la aplicacion
-                const r = await fetch(urlSheets + "&t=" + Date.now());//realiza una peticion a google sheets con la url y un timestamp para evitar cache
-                if (!r.ok) throw new Error("Google Sheets no disponible");//si la respuesta no es ok, lanza un error
+                const nuevos = {};
 
-                const texto = await r.text();//obtiene el texto de la respuesta de google sheets
-                const json = JSON.parse(//convierte el texto de la respuesta de google sheets en un objeto json
-                    texto.substring(texto.indexOf("(") + 1, texto.lastIndexOf(")"))//elimina los caracteres de inicio y fin de la respuesta de google sheets para obtener solo el objeto json
-                );
+                j.table.rows.forEach(f => {
+                    const c = f.c || [];
+                    const id = String(c[0]?.v ?? "").trim().toUpperCase();
+                    if (!id) return;
 
-                if (json.status !== "ok") throw new Error("Respuesta inválida");//si el estado de la respuesta de google sheets no es ok, lanza un error
+                    nuevos[id] = {};
+                    c.forEach((v, i) => {
+                        nuevos[id][j.table.cols[i]?.label || i] =
+                            v?.f ?? v?.v ?? "";
+                    });
 
-                datosSheets = {};//reinicia el objeto de datos de google sheets para almacenar los nuevos datos
-
-                json.table.rows.forEach(f => {//recorre cada fila de la respuesta de google sheets y obtiene los datos de cada punto y los almacena en el objeto de datos de google sheets
-                    const c = f.c || [];//obtiene los datos de cada celda de la fila
-                    const id = String(c[0]?.f ?? c[0]?.v ?? "").trim().toUpperCase();//obtiene el id del punto y lo normaliza para que sea consistente con los datos de qgis2web
-
-                    if (id) {//si el id del punto no es vacio, almacena los datos de la fila en el objeto de datos de google sheets
-                      datosSheets[id] = {//almacena los datos de la fila en el objeto de datos de google sheets con el id del punto como clave
-                            k: c[10]?.f ?? c[10]?.v ?? "",//obtiene la fecha de fundido del punto para determinar su estado
-                            l: c[11]?.f ?? c[11]?.v ?? ""//obtiene la fecha de replanteo del punto para determinar su estado
-                        };
-                    }
+                    nuevos[id].k = c[10]?.f ?? c[10]?.v ?? "";
+                    nuevos[id].l = c[11]?.f ?? c[11]?.v ?? "";
                 });
 
-                pintarPilotes();//pinta los puntos en el mapa con los nuevos datos de google sheets
-                actualizarAvance();//actualiza el avance de fundido con los nuevos datos de google sheets
+                datosSheets = nuevos;
+                pintarPilotes();
+                actualizarAvance();
                 buscarPuntos();
+                document.getElementById("estadoSheets").textContent =
+                    `Google Sheets conectado - ${Object.keys(nuevos).length} registros`;
+                document.getElementById("estadoSheets").style.color = "#166534";
 
-                mensaje.textContent = "Google Sheets actualizado: " + new Date().toLocaleTimeString("es-CO"); //muestra el estado de la conexion con google sheets y la hora de la ultima actualizacion
-
-            } catch (error) {//si ocurre un error al realizar la peticion a google sheets, muestra un mensaje de error y conserva los datos de qgis2web
-                console.error(error);//muestra el error en la consola del navegador
-                mensaje.textContent = "Sin conexión. Se conservan los datos de QGIS.";//muestra el estado de la conexion con google sheets y que se conservan los datos de qgis2web
-                pintarPilotes();//pinta los puntos en el mapa con los datos de qgis2web cuando no hay conexion con google sheets
-                actualizarAvance();//actualiza el avance de fundido con los datos de qgis2web cuando no hay conexion con google sheets
-                buscarPuntos();
+            } catch (e) {
+                console.error("Error Sheets:", e);
+                document.getElementById("estadoSheets").textContent =
+                    "Sin conexión con Google Sheets - se usan los datos exportados";
+                document.getElementById("estadoSheets").style.color = "#b91c1c";
             }
         }
+
 
         document.getElementById("todos").onclick = () => {//cuando se hace clic en el boton de todos, se asigna el filtro a TODOS y se pintan los puntos en el mapa
             filtro = "TODOS";//asigna el filtro a TODOS
@@ -590,38 +588,49 @@
             });
         }
 
+        
         function mostrarPopupPilote(feature, coordenada) {
             const datos = feature.getProperties();
             const id = String(datos.id || "").trim().toUpperCase();
-            const sheet = datosSheets[id];
-            const fechaFundido = sheet?.k || datos.FechaFundido || datos.FechaFundi;
-            const fechaReplanteo = sheet?.l || datos.FechaReplanteo || datos.FechaRepla;
-            const [longitud, latitud] = ol.proj.toLonLat(coordenada);
-            const mostrarValor = valor =>
-                valor == null || ["", "null", "undefined"].includes(String(valor).trim().toLowerCase())
-                    ? "—"
-                    : String(valor);
+            const sheet = datosSheets[id] || {};
+            const mostrar = v => v === "" || v == null ? "Sin datos" : v;
+            const valorSheet = (indice, ...alternativas) => {
+                const valorSheets = sheet[indice];
+                if (valorSheets !== "" && valorSheets != null) return valorSheets;
+                return alternativas.find(v => v !== "" && v != null) ?? "Sin datos";
+            };
+
+            const filas = [
+                ["Estado", estado(feature)],
+                ["Fecha de fundido", valorSheet(10, datos.FechaFundido, datos.FechaFundi)],
+                ["Fecha de replanteo", valorSheet(11, datos.FechaReplanteo, datos.FechaRepla)],
+                ["Coordenadas",
+                    `Plano X/Y: ${mostrar(valorSheet(1, datos.x_plano))} / ${mostrar(valorSheet(2, datos.y_plano))}; ` +
+                    `Campo X/Y: ${mostrar(valorSheet(5, datos.x_campo))} / ${mostrar(valorSheet(6, datos.y_campo))}`
+                ],
+                ["Replanteado", valorSheet(4, datos.replanteado, datos.replantead)],
+                ["Desviación radial", valorSheet(7, datos["desviacion radial"], datos.desviacion)],
+                ["Volumen teórico", valorSheet(8, datos.volTeorico)],
+                ["Volumen final", valorSheet(9, datos.volFinal)]
+            ];
 
             const popup = document.getElementById("popup-content");
-            const titulo = document.createElement("strong");
-            titulo.textContent = id;
+            const titulo = document.createElement("h3");
+            titulo.textContent = "Pilote " + id;
+
             const tabla = document.createElement("table");
-            const filas = [
-                ["Fecha de fundido", mostrarValor(fechaFundido)],
-                ["Fecha de replanteo", mostrarValor(fechaReplanteo)],
-                ["Coordenadas", `Plano X/Y: ${mostrarValor(datos.x_plano)} / ${mostrarValor(datos.y_plano)}; Campo X/Y: ${mostrarValor(datos.x_campo)} / ${mostrarValor(datos.y_campo)}`],
-                ["Volumen teórico", mostrarValor(datos.volTeorico)],
-                ["Volumen final", mostrarValor(datos.volFinal)]
-            ];
-            filas.forEach(([etiqueta, valor]) => {
+
+            filas.forEach(([nombre, dato]) => {
                 const fila = tabla.insertRow();
-                fila.insertCell().textContent = etiqueta;
-                fila.insertCell().textContent = valor;
+                fila.insertCell().textContent = nombre;
+                fila.insertCell().textContent = mostrar(dato);
             });
+
             popup.replaceChildren(titulo, tabla);
             document.getElementById("popup").style.display = "block";
             overlayPopup.setPosition(coordenada);
         }
+
 
         map.on("singleclick", event => {
             map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
