@@ -577,7 +577,7 @@
                     `Estado: ${bloqueo
                         ? bloqueo.enEjecucion
                             ? "NO POSIBLE (durante la ejecución y hasta 48 h después del fundido)"
-                            : "NO POSIBLE hasta " + new Date(bloqueo.vence).toLocaleString("es-CO")
+                            : "NO POSIBLE hasta " + new Date(bloqueo.vence).toLocaleDateString("es-CO")
                         : estado(feature)} | ` +
                     `Fundido: ${fechaFundido || "—"} | ` +
                     `Replanteo: ${fechaReplanteo || "—"} | ` +
